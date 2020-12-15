@@ -13,7 +13,7 @@ import {
   TitleAndSubTitle, Favorite, Loading,
 } from './styles';
 
-// let signal = false;
+// let signal = false; //
 
 interface BoxData {
   Title?: string,
