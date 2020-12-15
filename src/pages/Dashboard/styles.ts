@@ -22,7 +22,7 @@ const spin = keyframes`
 
 export const Loading = styled.div`
   width: 100vw;
-  height: 100vh;
+  margin-top: 150px;
 
   display: flex;
   justify-content: center;
@@ -58,7 +58,7 @@ export const Search = styled.div`
   display: flex;
 
   > input {
-    width: 400px;
+    width: 350px;
     height: 40px;
     margin-right: 25px;
     padding: 5px 15px;
