@@ -66,11 +66,9 @@ const Dashboard: React.FC = () => {
     if (movieName === '') {
       setTotalPages(0);
       setMovies([]);
-      setMoviesFavorite([]);
     } else {
       try {
         setLoading(true);
-        setMoviesFavorite([]);
 
         const { data } = await apiCall({ movieName, page });
 
