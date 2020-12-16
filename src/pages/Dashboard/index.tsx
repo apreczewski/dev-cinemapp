@@ -2,7 +2,7 @@
 /* eslint-disable react/no-unused-prop-types */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import React, {
-  useCallback, useEffect, useState,
+  useCallback, useState,
 } from 'react';
 
 import { FaStar } from 'react-icons/fa';
@@ -13,57 +13,59 @@ import {
   TitleAndSubTitle, Favorite, Loading,
 } from './styles';
 
-// let signal = false; //
+// let signal = false;
 
-interface BoxData {
+interface MovieData {
   Title?: string,
   Poster?: string,
   Year?: string,
   Type?: string,
   imdbID: string,
+  favorite?: boolean,
 }
 
 const Dashboard: React.FC = () => {
-  const [movies, setMovies] = useState([]);
+  const [movies, setMovies] = useState([] as Array<MovieData>);
   const [movieName, setMovieName] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [listFavorite, setFavorite] = useState([] as any);
 
-  const addAndRemoveFavorite = (imdbID: string) => {
-    const favorite = listFavorite.includes(imdbID);
+  const addAndRemoveFavorite = useCallback((imdbID: string) => {
+    const newList: Array<MovieData> = movies.map((movie: MovieData) => {
+      if (movie.imdbID === imdbID) {
+        if (movie.favorite) {
+          return { ...movie, favorite: false };
+        }
+        return { ...movie, favorite: true };
+      }
+      return movie;
+    });
 
-    if (favorite) {
-      const newList = listFavorite.filter((item: string) => item !== imdbID);
-      setFavorite(newList);
-    } else {
-      setFavorite([...listFavorite, imdbID]);
-    }
-  };
+    setMovies(newList);
+  }, [movies]);
 
-  useEffect(() => {
-    console.log('listFavorite >> ', listFavorite);
-  }, [listFavorite]);
-
-  const loadMovies = useCallback(async (name) => {
+  const loadMovies = useCallback(async () => {
     const { apiCall } = getMovieByName();
 
-    if (name === '') {
+    if (movieName === '') {
       setTotalPages(0);
       setMovies([]);
     } else {
       try {
         setLoading(true);
-        // signal = source;
-        const { data } = await apiCall({ movieName: name, page });
+        const { data } = await apiCall({ movieName, page });
 
         const { Search: listMovies, totalResults, Response } = data;
         if (Response === 'True') {
           const numberPages = Math.round(parseInt(totalResults, 10) / 10);
 
           setTotalPages(numberPages);
-          setMovies(listMovies);
+
+          const newList = listMovies.map((movie: MovieData) => (
+            { ...movie, favorite: false }));
+
+          setMovies(newList);
         } else {
           setTotalPages(0);
           setMovies([]);
@@ -79,16 +81,43 @@ const Dashboard: React.FC = () => {
   const handleNextPage = useCallback(() => {
     if (page < totalPages) {
       setPage(page + 1);
-      loadMovies(movieName);
+      loadMovies();
     }
-  }, [movieName, page, loadMovies, totalPages]);
+  }, [page, loadMovies, totalPages]);
 
   const handlePrevPage = useCallback(() => {
     if (page > 1 && page < totalPages) {
       setPage(page - 1);
-      loadMovies(movieName);
+      loadMovies();
     }
-  }, [movieName, page, loadMovies, totalPages]);
+  }, [page, loadMovies, totalPages]);
+
+  const loadingListMovies = useCallback(() => {
+    const newList = movies.map(({
+      Title, Poster, Year, Type, imdbID, favorite,
+    }: MovieData) => (
+      <BoxMovie>
+
+        <img src={Poster} alt={Title} />
+        <TitleAndSubTitle>
+          <span>{Title}</span>
+          <p>{`${Year} - ${Type}`}</p>
+        </TitleAndSubTitle>
+        <Favorite
+          type="button"
+          onClick={() => addAndRemoveFavorite(imdbID)}
+        >
+          <FaStar className={`is${favorite}`} size={30} />
+        </Favorite>
+      </BoxMovie>
+    ));
+
+    return newList;
+  }, [movies, addAndRemoveFavorite]);
+
+  // useEffect(() => {
+  //   loadMovies('');
+  // }, [loadMovies]);
 
   return (
     <>
@@ -96,7 +125,7 @@ const Dashboard: React.FC = () => {
         <Heard>
           <Search>
             <input type="text" placeholder="Search movie" onChange={(e) => setMovieName(e.target.value)} />
-            <BtnGo type="button" onClick={() => loadMovies(movieName)}>Go</BtnGo>
+            <BtnGo type="button" onClick={() => loadMovies()}>Go</BtnGo>
           </Search>
           {movies.length > 0 && (
           <NextAndPrev>
@@ -111,22 +140,7 @@ const Dashboard: React.FC = () => {
           </Loading>
         ) : (
           <Body>
-            {movies.length > 0 && (
-              movies.map(({
-                Title, Poster, Year, Type, imdbID,
-              }: BoxData) => (
-                <BoxMovie>
-                  <img src={Poster} alt={Title} />
-                  <TitleAndSubTitle>
-                    <span>{Title}</span>
-                    <p>{`${Year} - ${Type}`}</p>
-                  </TitleAndSubTitle>
-                  <Favorite type="button" onClick={() => addAndRemoveFavorite(imdbID)}>
-                    <FaStar size={30} />
-                  </Favorite>
-                </BoxMovie>
-              ))
-            )}
+            {!loading && loadingListMovies()}
           </Body>
         )}
       </Wapper>

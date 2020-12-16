@@ -166,14 +166,20 @@ export const Favorite = styled.button`
   border-bottom-right-radius: 9px;
   border-top-right-radius: 9px;
 
+  .istrue {
+    color: #FFE318;
+  }
+
+  .isfalse {
+    color: #9FAF9B;
+  }
 
   > svg {
     cursor: pointer;
     transition: color 300ms;
 
     :hover {
-      color: #EBEC75;
-      /* box-shadow: 10px 10px 5px grey, */
+      color: #FFE318;
     }
   }
 `;
