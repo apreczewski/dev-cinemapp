@@ -187,3 +187,40 @@ export const Favorite = styled.button`
 export const Container = styled.div`
 
 `;
+
+export const Stars = styled.button`
+  text-decoration: none;
+  border: none;
+
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  margin: 0 15px;
+
+  > svg {
+    cursor: pointer;
+    color: #FFE318;
+  }
+
+  > span {
+    position: absolute;
+    right: -5px;
+    top: -5px;
+    font-size: 9px;
+    background: #EA5323;
+    color: white;
+    border: 1px solid white;
+
+    padding: 7px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+  }
+`;

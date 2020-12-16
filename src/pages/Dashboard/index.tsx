@@ -10,7 +10,7 @@ import { ImSpinner10 } from 'react-icons/im';
 import { getMovieByName } from '../../services/endpoints/movies';
 import {
   Wapper, Heard, Search, BtnGo, NextAndPrev, BtnNext, BtnPrev, Body, BoxMovie,
-  TitleAndSubTitle, Favorite, Loading,
+  TitleAndSubTitle, Favorite, Loading, Stars,
 } from './styles';
 
 // let signal = false;
@@ -30,20 +30,35 @@ const Dashboard: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [moviesFavorite, setMoviesFavorite] = useState([] as Array<MovieData>);
+  // const [moviesCurrent, setMoviesCurrent] = useState([] as Array<MovieData>);
 
-  const addAndRemoveFavorite = useCallback((imdbID: string) => {
+  const addOrRemoveFavorite = useCallback((imdbID: string) => {
     const newList: Array<MovieData> = movies.map((movie: MovieData) => {
       if (movie.imdbID === imdbID) {
         if (movie.favorite) {
+          const list = moviesFavorite.filter(
+            (favorite: MovieData) => favorite.imdbID !== imdbID,
+          );
+
+          if (list.length > 0) {
+            setMoviesFavorite(list);
+          } else {
+            setMoviesFavorite([]);
+          }
+
           return { ...movie, favorite: false };
         }
+
+        setMoviesFavorite([...moviesFavorite, { ...movie, favorite: true }]);
         return { ...movie, favorite: true };
       }
+
       return movie;
     });
 
     setMovies(newList);
-  }, [movies]);
+  }, [movies, moviesFavorite]);
 
   const loadMovies = useCallback(async () => {
     const { apiCall } = getMovieByName();
@@ -51,12 +66,16 @@ const Dashboard: React.FC = () => {
     if (movieName === '') {
       setTotalPages(0);
       setMovies([]);
+      setMoviesFavorite([]);
     } else {
       try {
         setLoading(true);
+        setMoviesFavorite([]);
+
         const { data } = await apiCall({ movieName, page });
 
         const { Search: listMovies, totalResults, Response } = data;
+
         if (Response === 'True') {
           const numberPages = Math.round(parseInt(totalResults, 10) / 10);
 
@@ -76,7 +95,7 @@ const Dashboard: React.FC = () => {
         setLoading(false);
       }
     }
-  }, [page]);
+  }, [page, movieName]);
 
   const handleNextPage = useCallback(() => {
     if (page < totalPages) {
@@ -92,7 +111,7 @@ const Dashboard: React.FC = () => {
     }
   }, [page, loadMovies, totalPages]);
 
-  const loadingListMovies = useCallback(() => {
+  const renderListMovies = useCallback(() => {
     const newList = movies.map(({
       Title, Poster, Year, Type, imdbID, favorite,
     }: MovieData) => (
@@ -105,7 +124,7 @@ const Dashboard: React.FC = () => {
         </TitleAndSubTitle>
         <Favorite
           type="button"
-          onClick={() => addAndRemoveFavorite(imdbID)}
+          onClick={() => addOrRemoveFavorite(imdbID)}
         >
           <FaStar className={`is${favorite}`} size={30} />
         </Favorite>
@@ -113,11 +132,13 @@ const Dashboard: React.FC = () => {
     ));
 
     return newList;
-  }, [movies, addAndRemoveFavorite]);
+  }, [movies, addOrRemoveFavorite]);
 
-  // useEffect(() => {
-  //   loadMovies('');
-  // }, [loadMovies]);
+  const handleFavorites = useCallback(() => {
+    setLoading(true);
+    setMovies(moviesFavorite);
+    setLoading(false);
+  }, [moviesFavorite]);
 
   return (
     <>
@@ -126,6 +147,15 @@ const Dashboard: React.FC = () => {
           <Search>
             <input type="text" placeholder="Search movie" onChange={(e) => setMovieName(e.target.value)} />
             <BtnGo type="button" onClick={() => loadMovies()}>Go</BtnGo>
+            <Stars onClick={() => handleFavorites()}>
+              {moviesFavorite
+              && (
+              <>
+                <FaStar size={30} />
+                <span>{moviesFavorite.length}</span>
+              </>
+              )}
+            </Stars>
           </Search>
           {movies.length > 0 && (
           <NextAndPrev>
@@ -140,7 +170,7 @@ const Dashboard: React.FC = () => {
           </Loading>
         ) : (
           <Body>
-            {!loading && loadingListMovies()}
+            {!loading && renderListMovies()}
           </Body>
         )}
       </Wapper>
