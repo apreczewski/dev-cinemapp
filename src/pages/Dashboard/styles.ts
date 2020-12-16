@@ -153,7 +153,7 @@ export const TitleAndSubTitle = styled.div`
 
 `;
 
-export const Favorite = styled.div`
+export const Favorite = styled.button`
   width: 200px;
   height: 100%;
 
@@ -161,8 +161,20 @@ export const Favorite = styled.div`
   justify-content: center;
   align-items: center;
 
+  text-decoration: none;
+  border: none;
+  border-bottom-right-radius: 9px;
+  border-top-right-radius: 9px;
+
+
   > svg {
-    color: red;
+    cursor: pointer;
+    transition: color 300ms;
+
+    :hover {
+      color: #EBEC75;
+      /* box-shadow: 10px 10px 5px grey, */
+    }
   }
 `;
 

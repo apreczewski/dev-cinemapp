@@ -2,7 +2,7 @@
 /* eslint-disable react/no-unused-prop-types */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import React, {
-  useCallback, useState,
+  useCallback, useEffect, useState,
 } from 'react';
 
 import { FaStar } from 'react-icons/fa';
@@ -19,7 +19,8 @@ interface BoxData {
   Title?: string,
   Poster?: string,
   Year?: string,
-  Type?: string
+  Type?: string,
+  imdbID: string,
 }
 
 const Dashboard: React.FC = () => {
@@ -28,24 +29,22 @@ const Dashboard: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
-  // const handleListMovies = useCallback(() => {
-  //   console.log(movies);
+  const [listFavorite, setFavorite] = useState([] as any);
 
-  //   movies.map(({
-  //     Title, Poster, Year, Type,
-  //   }: BoxData) => (
-  //     <BoxMovie>
-  //       <img src={Poster} alt={Title} />
-  //       <Heard>
-  //         <span>{Title}</span>
-  //         <p>{`${Year} - ${Type}`}</p>
-  //       </Heard>
-  //       <Favorite>
-  //         <FaStar size={30} />
-  //       </Favorite>
-  //     </BoxMovie>
-  //   ));
-  // }, [movies]);
+  const addAndRemoveFavorite = (imdbID: string) => {
+    const favorite = listFavorite.includes(imdbID);
+
+    if (favorite) {
+      const newList = listFavorite.filter((item: string) => item !== imdbID);
+      setFavorite(newList);
+    } else {
+      setFavorite([...listFavorite, imdbID]);
+    }
+  };
+
+  useEffect(() => {
+    console.log('listFavorite >> ', listFavorite);
+  }, [listFavorite]);
 
   const loadMovies = useCallback(async (name) => {
     const { apiCall } = getMovieByName();
@@ -60,11 +59,7 @@ const Dashboard: React.FC = () => {
         const { data } = await apiCall({ movieName: name, page });
 
         const { Search: listMovies, totalResults, Response } = data;
-
-        console.log(Response);
-
         if (Response === 'True') {
-          console.log(typeof Response);
           const numberPages = Math.round(parseInt(totalResults, 10) / 10);
 
           setTotalPages(numberPages);
@@ -81,15 +76,8 @@ const Dashboard: React.FC = () => {
     }
   }, [page]);
 
-  // const getMovies = useCallback((name) => {
-  //   if (name !== '') {
-  //     setMovieName(name);
-  //   }
-  // }, []);
-
   const handleNextPage = useCallback(() => {
     if (page < totalPages) {
-      console.log('next', page);
       setPage(page + 1);
       loadMovies(movieName);
     }
@@ -97,18 +85,10 @@ const Dashboard: React.FC = () => {
 
   const handlePrevPage = useCallback(() => {
     if (page > 1 && page < totalPages) {
-      console.log('prev', page);
       setPage(page - 1);
       loadMovies(movieName);
     }
-    console.log('prev afet if', page);
   }, [movieName, page, loadMovies, totalPages]);
-
-  // useEffect(() => {
-  //   loadMovies();
-  // }, [loadMovies]);
-
-  // useEffect(() => () => signal && signal.cancel(), []);
 
   return (
     <>
@@ -133,7 +113,7 @@ const Dashboard: React.FC = () => {
           <Body>
             {movies.length > 0 && (
               movies.map(({
-                Title, Poster, Year, Type,
+                Title, Poster, Year, Type, imdbID,
               }: BoxData) => (
                 <BoxMovie>
                   <img src={Poster} alt={Title} />
@@ -141,7 +121,7 @@ const Dashboard: React.FC = () => {
                     <span>{Title}</span>
                     <p>{`${Year} - ${Type}`}</p>
                   </TitleAndSubTitle>
-                  <Favorite>
+                  <Favorite type="button" onClick={() => addAndRemoveFavorite(imdbID)}>
                     <FaStar size={30} />
                   </Favorite>
                 </BoxMovie>
