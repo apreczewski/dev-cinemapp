@@ -31,7 +31,6 @@ const Dashboard: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
   const [moviesFavorite, setMoviesFavorite] = useState([] as Array<MovieData>);
-  // const [moviesCurrent, setMoviesCurrent] = useState([] as Array<MovieData>);
 
   const addOrRemoveFavorite = useCallback((imdbID: string) => {
     const newList: Array<MovieData> = movies.map((movie: MovieData) => {
@@ -82,7 +81,25 @@ const Dashboard: React.FC = () => {
           const newList = listMovies.map((movie: MovieData) => (
             { ...movie, favorite: false }));
 
-          setMovies(newList);
+          let listAddFavorite = [];
+
+          if (moviesFavorite.length > 0) {
+            listAddFavorite = newList.map((movie: MovieData) => {
+              const movieFavorite = moviesFavorite.filter(
+                (favorite) => favorite.imdbID === movie.imdbID,
+              );
+
+              if (movieFavorite.length) {
+                return movieFavorite[0];
+              }
+
+              return movie;
+            });
+          } else {
+            listAddFavorite = newList;
+          }
+
+          setMovies(listAddFavorite);
         } else {
           setTotalPages(0);
           setMovies([]);
@@ -93,7 +110,7 @@ const Dashboard: React.FC = () => {
         setLoading(false);
       }
     }
-  }, [page, movieName]);
+  }, [page, movieName, moviesFavorite]);
 
   const handleNextPage = useCallback(() => {
     if (page < totalPages) {
@@ -143,7 +160,11 @@ const Dashboard: React.FC = () => {
       <Wapper>
         <Heard>
           <Search>
-            <input type="text" placeholder="Search movie" onChange={(e) => setMovieName(e.target.value)} />
+            <input
+              type="text"
+              placeholder="Search movie"
+              onChange={(e) => setMovieName(e.target.value)}
+            />
             <BtnGo type="button" onClick={() => loadMovies()}>Go</BtnGo>
             <Stars onClick={() => handleFavorites()}>
               {moviesFavorite
@@ -157,8 +178,22 @@ const Dashboard: React.FC = () => {
           </Search>
           {movies.length > 0 && (
           <NextAndPrev>
-            <BtnNext disabled={page <= 1} type="button" onClick={handlePrevPage}>Prev</BtnNext>
-            <BtnPrev disabled={page >= totalPages} type="button" onClick={handleNextPage}>Next</BtnPrev>
+            <BtnNext
+              disabled={page <= 1}
+              type="button"
+              onClick={handlePrevPage}
+            >
+              Prev
+
+            </BtnNext>
+            <BtnPrev
+              disabled={page >= totalPages}
+              type="button"
+              onClick={handleNextPage}
+            >
+              Next
+
+            </BtnPrev>
           </NextAndPrev>
           )}
         </Heard>
